@@ -1,64 +1,60 @@
-//rough
 const fs = require('fs');
 
-function readInput(filename) {
-    if (!fs.existsSync(filename)) {
-        console.error(`File not found: ${filename}`);
-        process.exit(1);
-    }
-    const data = fs.readFileSync(filename);
-    return JSON.parse(data);
-}
-
+// Function to decode a value from a given base to decimal
 function decodeValue(base, value) {
     return parseInt(value, base);
 }
 
+// Function to perform Lagrange interpolation and find the constant term
 function lagrangeInterpolation(points) {
+    let c = 0;
     const k = points.length;
-    let constantTerm = 0;
 
     for (let i = 0; i < k; i++) {
-        let term = points[i].y;
+        let xi = points[i][0];
+        let yi = points[i][1];
+
+        let li = 1;
         for (let j = 0; j < k; j++) {
             if (i !== j) {
-                term *= (0 - points[j].x) / (points[i].x - points[j].x);
+                let xj = points[j][0];
+                li *= (0 - xj) / (xi - xj);
             }
         }
-        constantTerm += term;
+        c += yi * li;
     }
-    return constantTerm;
+    return c;
 }
 
-function processFile(filename) {
-    const input = readInput(filename);
-    const n = input.keys.n;
-    const k = input.keys.k;
+// Main function to read JSON input and calculate the constant term
+function findConstantTerm(filePath) {
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const n = data.keys.n;
+    const k = data.keys.k;
 
+    // Decode the points
     const points = [];
-
-    // Collect the first k points
     for (let i = 1; i <= n; i++) {
-        if (points.length < k) {
-            const base = parseInt(input[i.toString()]["base"]);
-            const value = input[i.toString()]["value"];
-            const x = i;
+        if (data[i]) {
+            const x = parseInt(i);
+            const base = parseInt(data[i].base);
+            const value = data[i].value;
             const y = decodeValue(base, value);
-            points.push({ x, y });
+            points.push([x, y]);
         }
     }
 
-    const constantTerm = lagrangeInterpolation(points);
-    console.log(`The constant term (c) for file "${filename}" is:`, constantTerm);
+    // Select the first k points for interpolation
+    const selectedPoints = points.slice(0, k);
+
+    // Calculate the constant term using Lagrange interpolation
+    const constantTerm = lagrangeInterpolation(selectedPoints);
+
+    console.log('Constant term (c):', constantTerm);
 }
 
-function main() {
-    // List of JSON files
-    const files = ['input1.json', 'input2.json'];
-
-    files.forEach(processFile);
-}
-
-main();
+// Example usage
+findConstantTerm('input1.json');
+findConstantTerm('input2.json');
 // The constant term (c) for file "input1.json" is: 3
 // The constant term (c) for file "input2.json" is: 28735619723864
