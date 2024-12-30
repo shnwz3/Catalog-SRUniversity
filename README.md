@@ -1,2 +1,2 @@
-The constant term (c) for file "input1.json" is: 3 </br>
-The constant term (c) for file "input2.json" is: 28735619723864
+Constant term (c): 3 </br>
+Constant term (c): 28735619723864
